@@ -11,7 +11,7 @@ import json
 import logging
 import argparse
 from pathlib import Path
-from typing import Dict, Any, Optional, Union
+from typing import Dict, Any, Optional, Union, List
 import torch
 import torch.distributed as dist
 from torch.distributed import init_process_group, destroy_process_group
@@ -88,7 +88,7 @@ class SFTConfig:
     # Optimization configurations
     fp16: bool = False
     bf16: bool = False
-    gradient_checkpointing: bool = False
+    gradient_checkpointing: bool = True
     dataloader_num_workers: int = 4
     dataloader_pin_memory: bool = True
 
@@ -100,6 +100,10 @@ class SFTConfig:
     # Advanced configurations
     resume_from_checkpoint: Optional[str] = None
     seed: int = 42
+    
+    # --- new field for multi-dataset ---
+    datasets: Optional[List[Dict[str, Any]]] = field(default_factory=list)
+    
 
 
 class SFTTrainingPipeline:
@@ -193,6 +197,46 @@ class SFTTrainingPipeline:
 
     def setup_training_arguments(self, per_device_batch_size: int):
         """Setup HuggingFace training arguments"""
+        # training_args = TrainingArguments(
+        #     output_dir=self.config.output_dir,
+        #     overwrite_output_dir=self.config.overwrite_output_dir,
+        #     do_train=self.config.do_train,
+        #     do_eval=self.config.do_eval,
+        #     per_device_train_batch_size=per_device_batch_size,
+        #     per_device_eval_batch_size=self.config.per_device_eval_batch_size,
+        #     gradient_accumulation_steps=self.config.gradient_accumulation_steps,
+        #     learning_rate=self.config.learning_rate,
+        #     weight_decay=self.config.weight_decay,
+        #     adam_beta1=self.config.adam_beta1,
+        #     adam_beta2=self.config.adam_beta2,
+        #     adam_epsilon=self.config.adam_epsilon,
+        #     max_grad_norm=self.config.max_grad_norm,
+        #     num_train_epochs=self.config.num_train_epochs,
+        #     max_steps=self.config.max_steps,
+        #     warmup_steps=self.config.warmup_steps,
+        #     lr_scheduler_type=self.config.lr_scheduler_type,
+        #     logging_steps=self.config.logging_steps,
+        #     logging_dir=self.config.logging_dir,
+        #     save_steps=self.config.save_steps,
+        #     eval_steps=self.config.eval_steps,
+        #     save_total_limit=self.config.save_total_limit,
+        #     # evaluation_strategy=self.config.evaluation_strategy,
+        #     save_strategy=self.config.save_strategy,
+        #     load_best_model_at_end=self.config.load_best_model_at_end,
+        #     metric_for_best_model=self.config.metric_for_best_model,
+        #     greater_is_better=self.config.greater_is_better,
+        #     fp16=self.config.fp16,
+        #     bf16=self.config.bf16,
+        #     gradient_checkpointing=self.config.gradient_checkpointing,
+        #     dataloader_num_workers=self.config.dataloader_num_workers,
+        #     dataloader_pin_memory=self.config.dataloader_pin_memory,
+        #     report_to=self.config.report_to,
+        #     run_name=self.config.run_name,
+        #     local_rank=self.config.local_rank,
+        #     seed=self.config.seed,
+        #     ddp_backend=self.config.ddp_backend,
+        #     resume_from_checkpoint=self.config.resume_from_checkpoint,
+        # )
         training_args = TrainingArguments(
             output_dir=self.config.output_dir,
             overwrite_output_dir=self.config.overwrite_output_dir,
@@ -200,38 +244,18 @@ class SFTTrainingPipeline:
             do_eval=self.config.do_eval,
             per_device_train_batch_size=per_device_batch_size,
             per_device_eval_batch_size=self.config.per_device_eval_batch_size,
-            gradient_accumulation_steps=self.config.gradient_accumulation_steps,
             learning_rate=self.config.learning_rate,
             weight_decay=self.config.weight_decay,
-            adam_beta1=self.config.adam_beta1,
-            adam_beta2=self.config.adam_beta2,
-            adam_epsilon=self.config.adam_epsilon,
-            max_grad_norm=self.config.max_grad_norm,
             num_train_epochs=self.config.num_train_epochs,
-            max_steps=self.config.max_steps,
-            warmup_steps=self.config.warmup_steps,
-            lr_scheduler_type=self.config.lr_scheduler_type,
             logging_steps=self.config.logging_steps,
-            logging_dir=self.config.logging_dir,
             save_steps=self.config.save_steps,
-            eval_steps=self.config.eval_steps,
             save_total_limit=self.config.save_total_limit,
-            evaluation_strategy=self.config.evaluation_strategy,
-            save_strategy=self.config.save_strategy,
-            load_best_model_at_end=self.config.load_best_model_at_end,
-            metric_for_best_model=self.config.metric_for_best_model,
-            greater_is_better=self.config.greater_is_better,
             fp16=self.config.fp16,
             bf16=self.config.bf16,
             gradient_checkpointing=self.config.gradient_checkpointing,
             dataloader_num_workers=self.config.dataloader_num_workers,
-            dataloader_pin_memory=self.config.dataloader_pin_memory,
-            report_to=self.config.report_to,
             run_name=self.config.run_name,
-            local_rank=self.config.local_rank,
             seed=self.config.seed,
-            ddp_backend=self.config.ddp_backend,
-            resume_from_checkpoint=self.config.resume_from_checkpoint,
         )
 
         return training_args

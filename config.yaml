@@ -2,17 +2,36 @@
 # Copy this file and modify according to your needs
 
 # Model configurations
-model_name_or_path: "microsoft/DialoGPT-medium"  # HuggingFace model name or local path
+model_name_or_path: "Qwen/Qwen2.5-0.5B-Instruct"  # HuggingFace model name or local path
 tokenizer_name: null  # Use same as model if null
 model_revision: "main"
 use_auth_token: false
 
 # Data configurations
-dataset_name: null  # HuggingFace dataset name (e.g., "squad", "glue")
-dataset_config_name: null  # Dataset configuration name
-dataset_path: "./data"  # Local path for data files
-train_file: "train.jsonl"  # Training file name
-validation_file: "validation.jsonl"  # Validation file name
+# Single-dataset keys (legacy, ignored if "datasets" is defined)
+# dataset_name: null  # HuggingFace dataset name (e.g., "squad", "glue")
+# dataset_config_name: null  # Dataset configuration name
+# dataset_path: "./data"  # Local path for data files
+# train_file: "train.jsonl"  # Training file name
+# validation_file: "validation.jsonl"  # Validation file name
+# max_seq_length: 512
+# preprocessing_num_workers: 4
+  # - path: "./data/local_dataset"   # local dataset path
+  #   train_file: "train.jsonl"
+  #   validation_file: "val.jsonl"
+  #   ratio: 0.3
+# Multi-dataset configuration (new)
+
+
+datasets:
+  - name: "tatsu-lab/alpaca"       # HuggingFace dataset name
+    split: "train"                 # which split to load
+    ratio: 0.1                     # mixing ratio
+
+  - name: "HuggingFaceH4/ultrachat_200k"
+    split: "train_sft"
+    ratio: 0.1
+
 max_seq_length: 512
 preprocessing_num_workers: 4
 
@@ -20,7 +39,7 @@ preprocessing_num_workers: 4
 output_dir: "./sft_output"
 overwrite_output_dir: true
 do_train: true
-do_eval: true
+do_eval: false
 per_device_train_batch_size: 4  # Batch size per GPU
 per_device_eval_batch_size: 4
 gradient_accumulation_steps: 1  # Effective batch size = per_device_batch_size * gradient_accumulation_steps * num_gpus
@@ -51,7 +70,7 @@ num_gpus: 1  # Number of GPUs to use
 ddp_backend: "nccl"  # "nccl", "gloo", "mpi"
 
 # Optimization configurations
-fp16: true  # Use mixed precision training
+fp16: false  # Use mixed precision training
 bf16: false  # Use bfloat16 (better than fp16 on newer hardware)
 gradient_checkpointing: true  # Save memory at cost of computation
 dataloader_num_workers: 4

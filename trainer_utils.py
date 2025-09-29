@@ -128,7 +128,7 @@ class SFTTrainer(Trainer):
 
         return correct_sequences / total_sequences if total_sequences > 0 else 0.0
 
-    def training_step(self, model: nn.Module, inputs: Dict[str, Union[torch.Tensor, Any]]) -> torch.Tensor:
+    def training_step(self, model: nn.Module, inputs: Dict[str, Union[torch.Tensor, Any]], *args, **kwargs) -> torch.Tensor:
         """Custom training step with additional logging"""
         model.train()
         inputs = self._prepare_inputs(inputs)
@@ -140,7 +140,7 @@ class SFTTrainer(Trainer):
             loss = self.compute_loss(model, inputs)
 
         if self.args.n_gpu > 1:
-            loss = loss.mean()  # mean() to average on multi-gpu parallel training
+            loss = loss.mean()  # average on multi-gpu
 
         if self.args.gradient_accumulation_steps > 1 and not self.deepspeed:
             loss = loss / self.args.gradient_accumulation_steps
@@ -158,7 +158,7 @@ class SFTTrainer(Trainer):
 
         return loss.detach()
 
-    def log(self, logs: Dict[str, float]) -> None:
+    def log(self, logs: Dict[str, float], start_time: float = None) -> None:
         """Enhanced logging with additional metrics"""
         # Add timing information
         if self.start_time is not None:
