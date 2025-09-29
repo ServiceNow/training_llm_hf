@@ -36,6 +36,7 @@ max_seq_length: 512
 preprocessing_num_workers: 4
 
 # Training configurations
+max_train_samples: 200
 output_dir: "./sft_output"
 overwrite_output_dir: true
 do_train: true

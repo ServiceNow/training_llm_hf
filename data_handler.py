@@ -359,8 +359,9 @@ class DataHandler:
 
         # Mix training datasets
         mixed_train = self._mix_datasets(train_datasets, ratios)
-        max_train_samples = 200  # Set this from config
-        mixed_train = mixed_train.select(range(max_train_samples))
+
+        mixed_train = mixed_train.select(range(max_train_samples)) if (max_train_samples := getattr(self.config, "max_train_samples", None)) else mixed_train
+            
 
         mixed_eval = concatenate_datasets(eval_datasets) if eval_datasets else None
         return mixed_train, mixed_eval

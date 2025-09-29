@@ -103,6 +103,7 @@ class SFTConfig:
     
     # --- new field for multi-dataset ---
     datasets: Optional[List[Dict[str, Any]]] = field(default_factory=list)
+    max_train_samples: Optional[int] = None
     
 
 
